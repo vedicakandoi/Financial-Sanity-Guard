@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Should I Buy This? — Impulse Control Simulator</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card-hover {
+            transition: all 0.25s ease;
+        }
+        .glass-card-hover:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
+        }
+        /* Circular Progress Styling */
+        .circle-bg {
+            fill: none;
+            stroke: #334155;
+            stroke-width: 3.8;
+        }
+        .circle-progress {
+            fill: none;
+            stroke: #6366f1;
+            stroke-width: 3.8;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s ease;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center p-4 sm:p-6 md:p-8 selection:bg-brand-500 selection:text-white">
+
+    <!-- Header Section -->
+    <header class="w-full max-w-3xl text-center my-4 sm:my-6">
+        <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-xs sm:text-sm font-semibold mb-3">
+            <i class="fa-solid fa-shield-halved"></i> Financial Sanity Guard
+        </div>
+        <h1 class="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-400 bg-clip-text text-transparent">
+            Should I Buy This?
+        </h1>
+        <p class="text-slate-400 text-sm sm:text-base mt-2 max-w-lg mx-auto">
+            Test your urge before emptying your bank account. See the true real-world value of your purchase and take 30 seconds to decide.
+        </p>
+    </header>
+
+    <!-- Toast Notification Message -->
+    <div id="toast-msg" class="fixed top-5 right-5 bg-emerald-600 text-white px-4 py-2.5 rounded-xl shadow-xl text-xs sm:text-sm font-bold flex items-center gap-2 transform translate-y-[-100px] opacity-0 transition-all duration-300 z-50">
+        <i class="fa-solid fa-circle-check"></i> <span id="toast-text">Text copied to clipboard!</span>
+    </div>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-2xl mx-auto flex-1 flex flex-col justify-center">
+
+        <!-- Progress Indicator Bar -->
+        <div id="progress-container" class="w-full mb-6 hidden">
+            <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
+                <span id="step-label">Step 1 of 4</span>
+                <span id="step-title" class="text-brand-400">Item Details</span>
+            </div>
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden p-0.5 border border-slate-700/50">
+                <div id="progress-bar" class="bg-gradient-to-r from-brand-600 to-indigo-400 h-full rounded-full transition-all duration-500 ease-out" style="width: 25%;"></div>
+            </div>
+        </div>
+
+        <!-- STEP 1: INPUT FORM -->
+        <section id="step-1" class="glass-card rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6">
+            <div class="border-b border-slate-700/60 pb-4">
+                <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
+                    <i class="fa-solid fa-cart-shopping text-brand-500"></i> What are you about to buy?
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">Enter details of the object calling out your name right now.</p>
+            </div>
+
+            <form id="impulse-form" class="space-y-5" onsubmit="handleFormSubmit(event)">
+                <!-- Item Name -->
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2" for="item-name">
+                        Item Name <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" id="item-name" required placeholder="e.g. Samsung Galaxy S24, Air Fryer, 2BHK Flat"
+                        class="w-full bg-slate-900/80 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm transition">
+                </div>
+
+                <!-- Price & Income Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- Price -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2" for="item-price">
+                            Price (₹) <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">₹</span>
+                            <input type="number" id="item-price" min="1" required placeholder="2999"
+                                class="w-full bg-slate-900/80 border border-slate-700 rounded-xl pl-8 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm transition">
+                        </div>
+                    </div>
+
+                    <!-- Monthly Income -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2" for="monthly-income">
+                            Monthly Salary (₹) <span class="text-slate-500 font-normal lowercase">(optional)</span>
+                        </label>
+                        <div class="relative">
+                            <span class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">₹</span>
+                            <input type="number" id="monthly-income" min="1" placeholder="50000"
+                                class="w-full bg-slate-900/80 border border-slate-700 rounded-xl pl-8 pr-4 py-3 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent text-sm transition">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 px-6 rounded-xl shadow-lg shadow-brand-600/30 transition duration-200 flex items-center justify-center gap-2 text-sm cursor-pointer">
+                    Calculate Real Cost <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </section>
+
+        <!-- STEP 2: REAL-WORLD COST MATRIX -->
+        <section id="step-2" class="glass-card rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 hidden">
+            <div class="border-b border-slate-700/60 pb-4 flex justify-between items-start">
+                <div>
+                    <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
+                        <i class="fa-solid fa-calculator text-amber-400"></i> The Reality Check
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-400 mt-1">Here is what <span id="matrix-item-title" class="text-white font-semibold">your item</span> actually costs in real life.</p>
+                </div>
+                <span id="matrix-price-badge" class="px-3 py-1 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 font-extrabold text-sm sm:text-base">
+                    ₹0
+                </span>
+            </div>
+
+            <!-- Dynamic Conversion Matrix Grid -->
+            <div id="dynamic-matrix-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <!-- Dynamically Injected -->
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="goToStep(1)" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-4 rounded-xl border border-slate-700 text-xs sm:text-sm transition cursor-pointer">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Edit
+                </button>
+                <button type="button" onclick="goToStep(3)" class="w-2/3 bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-brand-600/30 text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                    Face Interrogation <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- STEP 3: FINANCIAL INTERROGATION QUIZ -->
+        <section id="step-3" class="glass-card rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 hidden">
+            <div class="border-b border-slate-700/60 pb-4">
+                <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
+                    <i class="fa-solid fa-gavel text-purple-400"></i> Financial Interrogation
+                </h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">Reflect honestly on these questions before going to the cooldown room.</p>
+            </div>
+
+            <div class="space-y-4" id="quiz-questions">
+                <!-- Q1 -->
+                <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2.5">
+                    <p class="text-xs sm:text-sm font-semibold text-slate-200">1. Have you actively wanted this exact item for more than 7 days?</p>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="selectQuizAnswer(0, true)" id="q0-yes" class="quiz-btn flex-1 py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300 hover:border-slate-500 transition cursor-pointer">Yes</button>
+                        <button type="button" onclick="selectQuizAnswer(0, false)" id="q0-no" class="quiz-btn flex-1 py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300 hover:border-slate-500 transition cursor-pointer">No</button>
+                    </div>
+                </div>
+
+                <!-- Q2 -->
+                <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2.5">
+                    <p class="text-xs sm:text-sm font-semibold text-slate-200">2. Will you realistically use this at least twice a week for the next 6 months?</p>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="selectQuizAnswer(1, true)" id="q1-yes" class="quiz-btn flex-1 py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300 hover:border-slate-500 transition cursor-pointer">Yes</button>
+                        <button type="button" onclick="selectQuizAnswer(1, false)" id="q1-no" class="quiz-btn flex-1 py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300 hover:border-slate-500 transition cursor-pointer">No</button>
+                    </div>
+                </div>
+
+                <!-- Q3 -->
+                <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2.5">
+                    <p class="text-xs sm:text-sm font-semibold text-slate-200">3. Do you ALREADY own something that performs 80% of what this does?</p>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="selectQuizAnswer(2, true)" id="q2-yes" class="quiz-btn flex-1 py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300 hover:border-slate-500 transition cursor-pointer">Yes</button>
+                        <button type="button" onclick="selectQuizAnswer(2, false)" id="q2-no" class="quiz-btn flex-1 py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300 hover:border-slate-500 transition cursor-pointer">No</button>
+                    </div>
+                </div>
+
+                <!-- Q4 -->
+                <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2.5">
+                    <p class="text-xs sm:text-sm font-semibold text-slate-200">4. Are you buying this primarily because you had a bad day or saw an Instagram ad?</p>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="selectQuizAnswer(3, true)" id="q3-yes" class="quiz-btn flex-1 py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300 hover:border-slate-500 transition cursor-pointer">Yes</button>
+                        <button type="button" onclick="selectQuizAnswer(3, false)" id="q3-no" class="quiz-btn flex-1 py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300 hover:border-slate-500 transition cursor-pointer">No</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Validation Warning -->
+            <div id="quiz-error" class="hidden text-xs text-rose-400 font-semibold flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-exclamation"></i> Please answer all 4 questions to proceed.
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 pt-2">
+                <button type="button" onclick="goToStep(2)" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3 px-4 rounded-xl border border-slate-700 text-xs sm:text-sm transition cursor-pointer">
+                    <i class="fa-solid fa-arrow-left mr-1"></i> Back
+                </button>
+                <button type="button" onclick="validateQuizAndProceed()" class="w-2/3 bg-brand-600 hover:bg-brand-500 text-white font-bold py-3 px-6 rounded-xl shadow-lg shadow-brand-600/30 text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                    Enter Cooldown <i class="fa-solid fa-hourglass-start"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- STEP 4: MANDATORY 30-SECOND COOLDOWN TIMER -->
+        <section id="step-4" class="glass-card rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 text-center hidden">
+            <div class="relative">
+                <!-- Skip Cooldown Button -->
+                <button type="button" onclick="skipCooldown()" class="absolute right-0 top-0 text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 text-[11px] font-semibold px-2.5 py-1 rounded-lg transition flex items-center gap-1 cursor-pointer">
+                    Skip <i class="fa-solid fa-forward text-[10px]"></i>
+                </button>
+
+                <span class="px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/30 text-rose-400 font-semibold text-xs inline-block mb-2">
+                    <i class="fa-solid fa-fire-extinguisher"></i> 30-Second Reflection Period
+                </span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Breathe. Reflect on this purchase.</h2>
+                <p class="text-xs sm:text-sm text-slate-400 mt-1">Dopamine spikes fade quickly. Use these 30 seconds to make your decision.</p>
+            </div>
+
+            <!-- Circular Timer Display -->
+            <div class="relative w-40 h-40 mx-auto my-4 flex items-center justify-center">
+                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
+                    <circle class="circle-bg" cx="50" cy="50" r="42"></circle>
+                    <circle id="timer-progress" class="circle-progress" cx="50" cy="50" r="42" stroke-dasharray="263.89" stroke-dashoffset="0"></circle>
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                    <span id="timer-seconds" class="text-4xl font-extrabold text-white tracking-tight">30</span>
+                    <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Seconds Left</span>
+                </div>
+            </div>
+
+            <!-- Rotating Satirical Quote Box -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 min-h-[76px] flex items-center justify-center">
+                <p id="cooldown-quote" class="text-xs sm:text-sm italic text-brand-300 font-medium animate-pulse-slow">
+                    "The joy of unboxing lasts 10 minutes. The regret lasts until salary day."
+                </p>
+            </div>
+
+            <!-- Decision Options After/During Cooldown -->
+            <div class="space-y-2 pt-2">
+                <div class="text-xs text-slate-400 mb-3" id="cooldown-status-text">
+                    Take a moment to decide what feels right for you.
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <!-- Abandon Button: Always Enabled -->
+                    <button type="button" onclick="makeUserChoice('abandon')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-rose-400 font-bold py-3.5 px-4 rounded-xl border border-slate-700 text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                        <i class="fa-solid fa-xmark"></i> I'll Abandon Purchase
+                    </button>
+
+                    <!-- Buy Button: Disabled during 30s Cooldown -->
+                    <button type="button" id="buy-btn" disabled onclick="makeUserChoice('buy')" class="flex-1 bg-slate-700/50 text-slate-500 cursor-not-allowed font-bold py-3.5 px-4 rounded-xl border border-slate-700 text-xs sm:text-sm transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-lock text-xs"></i> <span id="buy-btn-label">Wait 30s to Unlock</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- STEP 5: USER CHOICE OUTCOME SCREEN -->
+        <section id="step-5" class="glass-card rounded-2xl p-6 sm:p-8 shadow-2xl space-y-6 hidden">
+            <!-- Outcome Banner -->
+            <div id="outcome-banner" class="p-6 rounded-2xl text-center space-y-2 border">
+                <div id="outcome-badge" class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-1">
+                    <!-- Dynamic Badge -->
+                </div>
+                <h2 id="outcome-title" class="text-2xl sm:text-3xl font-extrabold text-white">
+                    <!-- Dynamic Outcome Title -->
+                </h2>
+                <p id="outcome-subtitle" class="text-xs sm:text-sm text-slate-300 max-w-md mx-auto">
+                    <!-- Dynamic Subtitle -->
+                </p>
+            </div>
+
+            <!-- Summary Breakdown Box -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3 text-xs sm:text-sm">
+                <h3 class="font-bold text-white border-b border-slate-800 pb-2 flex items-center justify-between">
+                    <span class="flex items-center gap-2"><i class="fa-solid fa-receipt text-brand-400"></i> Full Purchase Summary</span>
+                    <span id="summary-price-badge" class="text-brand-400 font-extrabold">₹0</span>
+                </h3>
+
+                <!-- Complete Itemized List -->
+                <div id="summary-full-list" class="space-y-2 text-slate-300 pt-1">
+                    <!-- Dynamically Populated with ALL calculated metrics -->
+                </div>
+            </div>
+
+            <!-- Share Buttons Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+                <button type="button" onclick="shareResult()" class="bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-brand-600/30 text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-share-nodes"></i> Share Result
+                </button>
+                <button type="button" onclick="copyTextSummary()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-indigo-600/30 text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-copy"></i> Copy Text
+                </button>
+                <button type="button" onclick="generateAndDownloadImage()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-emerald-600/30 text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-image"></i> Download Image
+                </button>
+            </div>
+
+            <!-- Reset Button -->
+            <button type="button" onclick="resetAll()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold py-3.5 px-6 rounded-xl border border-slate-700 transition duration-200 flex items-center justify-center gap-2 text-xs sm:text-sm cursor-pointer">
+                <i class="fa-solid fa-rotate-left"></i> Test Another Item
+            </button>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-3xl text-center my-6 text-xs text-slate-500">
+        Built for impulse buyers everywhere. Zero server dependencies. Data stays on your screen.
+    </footer>
+
+    <!-- Hidden Canvas for Image Generation -->
+    <canvas id="share-canvas" width="800" height="950" class="hidden"></canvas>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        const SITE_URL = "https://vedicakandoi.github.io/Financial-Sanctity-Guard/";
+
+        // State Management
+        let appState = {
+            currentStep: 1,
+            itemName: '',
+            itemPrice: 0,
+            monthlyIncome: 50000,
+            quizAnswers: [null, null, null, null],
+            timerSecondsLeft: 30,
+            timerInterval: null,
+            quoteInterval: null,
+            userDecision: null, // 'buy' or 'abandon'
+            matrixData: [] // Stores calculated splits
+        };
+
+        // Satirical Reality-Check Quotes
+        const satireQuotes = [
+            '"The joy of unboxing lasts 10 minutes. The regret lasts until salary day."',
+            '"Amazon does not care about your emergency fund, but your future self does."',
+            '"Are you buying this because you need it, or because you wanted dopamine?"',
+            '"Remember that gym membership you bought in January? Yeah."',
+            '"If you wait 24 hours and still want it, okay. But you won\'t."',
+            '"This item will look great gathering dust on your shelf next month."',
+            '"Your bank account balance called. It\'s asking for mercy."',
+            '"Retail therapy solves 0% of life problems long-term."'
+        ];
+
+        // Form Submit Handler
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const nameInput = document.getElementById('item-name').value.trim();
+            const priceInput = parseFloat(document.getElementById('item-price').value);
+            const incomeInput = parseFloat(document.getElementById('monthly-income').value);
+
+            if (!nameInput || isNaN(priceInput) || priceInput <= 0) {
+                return;
+            }
+
+            appState.itemName = nameInput;
+            appState.itemPrice = priceInput;
+            appState.monthlyIncome = (!isNaN(incomeInput) && incomeInput > 0) ? incomeInput : 50000;
+
+            renderDynamicMatrix();
+            goToStep(2);
+        }
+
+        // Format Calendar Labor Time
+        function formatCalendarLaborTime(price, monthlyIncome) {
+            const dailyRate = monthlyIncome / 30; // 30 full calendar days
+            const hourlyRate = dailyRate / 24;    // 24 hours per day
+
+            const totalHours = price / hourlyRate;
+            const totalDays = price / dailyRate;
+            const totalMonths = totalDays / 30;
+            const totalYears = totalMonths / 12;
+
+            if (totalHours < 48) {
+                return `${Math.round(totalHours * 10) / 10} Hours`;
+            } else if (totalDays < 60) {
+                return `${Math.round(totalDays * 10) / 10} Days`;
+            } else if (totalMonths < 24) {
+                return `${Math.round(totalMonths * 10) / 10} Months`;
+            } else {
+                return `${Math.round(totalYears * 10) / 10} Years`;
+            }
+        }
+
+        // Navigation Engine
+        function goToStep(step) {
+            if (step === 4) {
+                startCooldownTimer();
+            }
+
+            // Hide all sections
+            for (let i = 1; i <= 5; i++) {
+                document.getElementById(`step-${i}`).classList.add('hidden');
+            }
+
+            // Show current section
+            document.getElementById(`step-${step}`).classList.remove('hidden');
+            appState.currentStep = step;
+
+            // Update Progress Bar
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const stepLabel = document.getElementById('step-label');
+            const stepTitle = document.getElementById('step-title');
+
+            if (step === 5) {
+                progressContainer.classList.add('hidden');
+            } else {
+                progressContainer.classList.remove('hidden');
+                const percent = (step / 4) * 100;
+                progressBar.style.width = `${percent}%`;
+                stepLabel.textContent = `Step ${step} of 4`;
+
+                const titles = ['', 'Item Details', 'Cost Matrix', 'Interrogation', 'Reflection'];
+                stepTitle.textContent = titles[step];
+            }
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Render Dynamic Real-World Splits Matrix based on price thresholds
+        function renderDynamicMatrix() {
+            const price = appState.itemPrice;
+            const income = appState.monthlyIncome;
+            const grid = document.getElementById('dynamic-matrix-grid');
+
+            document.getElementById('matrix-item-title').textContent = appState.itemName;
+            document.getElementById('matrix-price-badge').textContent = `₹${price.toLocaleString('en-IN')}`;
+
+            let cardsHTML = '';
+            appState.matrixData = [];
+
+            // 1. Calendar Labor Time Card
+            const laborFormatted = formatCalendarLaborTime(price, income);
+            appState.matrixData.push({ label: 'Calendar Labor Time', val: laborFormatted, icon: 'fa-clock' });
+
+            cardsHTML += `
+                <div class="glass-card glass-card-hover p-4 rounded-xl flex items-center gap-3.5 border border-slate-800">
+                    <div class="w-11 h-11 rounded-xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-400 text-lg flex-shrink-0">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase font-semibold">Calendar Labor Time</div>
+                        <div class="text-lg font-bold text-white">${laborFormatted}</div>
+                        <div class="text-[11px] text-slate-500">Based on ₹${income.toLocaleString('en-IN')}/mo (30 calendar days)</div>
+                    </div>
+                </div>
+            `;
+
+            // 2. Cutting Chai Card (₹25)
+            const chai = Math.round(price / 25);
+            appState.matrixData.push({ label: 'Cutting Chai', val: `${chai.toLocaleString('en-IN')} cups`, icon: 'fa-mug-hot' });
+
+            cardsHTML += `
+                <div class="glass-card glass-card-hover p-4 rounded-xl flex items-center gap-3.5 border border-slate-800">
+                    <div class="w-11 h-11 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 text-lg flex-shrink-0">
+                        <i class="fa-solid fa-mug-hot"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 uppercase font-semibold">Cutting Chai Equivalent</div>
+                        <div class="text-lg font-bold text-white">${chai.toLocaleString('en-IN')} cups</div>
+                        <div class="text-[11px] text-slate-500">Based on ₹25 per tapri chai</div>
+                    </div>
+                </div>
+            `;
+
+            // 3. Biryani Meals (₹350) - Shown if >= ₹1,000
+            if (price >= 1000) {
+                const biryani = (price / 350).toFixed(1);
+                appState.matrixData.push({ label: 'Biryani Meals', val: `${biryani} meals`, icon: 'fa-utensils' });
+
+                cardsHTML += `
+                    <div class="glass-card glass-card-hover p-4 rounded-xl flex items-center gap-3.5 border border-slate-800">
+                        <div class="w-11 h-11 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-400 text-lg flex-shrink-0">
+                            <i class="fa-solid fa-utensils"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 uppercase font-semibold">Swiggy Biryani Meals</div>
+                            <div class="text-lg font-bold text-white">${biryani} meals</div>
+                            <div class="text-[11px] text-slate-500">Based on ₹350 per order</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 4. Weekend Dinners / Sneakers (₹2,000) - Shown if >= ₹2,500
+            if (price >= 2500) {
+                const dinners = (price / 2000).toFixed(1);
+                appState.matrixData.push({ label: 'Weekend Dinners', val: `${dinners} dinners`, icon: 'fa-wine-glass' });
+
+                cardsHTML += `
+                    <div class="glass-card glass-card-hover p-4 rounded-xl flex items-center gap-3.5 border border-slate-800">
+                        <div class="w-11 h-11 rounded-xl bg-teal-500/10 border border-teal-500/20 flex items-center justify-center text-teal-400 text-lg flex-shrink-0">
+                            <i class="fa-solid fa-wine-glass"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 uppercase font-semibold">Weekend Outings</div>
+                            <div class="text-lg font-bold text-white">${dinners} dinners</div>
+                            <div class="text-[11px] text-slate-500">Based on ₹2,000 per dinner</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 5. Samsung Phones (₹60,000) - Shown if >= ₹25,000
+            if (price >= 25000) {
+                const phones = (price / 60000).toFixed(1);
+                appState.matrixData.push({ label: 'Samsung Phones', val: `${phones} phones`, icon: 'fa-mobile-screen-button' });
+
+                cardsHTML += `
+                    <div class="glass-card glass-card-hover p-4 rounded-xl flex items-center gap-3.5 border border-slate-800">
+                        <div class="w-11 h-11 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 text-lg flex-shrink-0">
+                            <i class="fa-solid fa-mobile-screen-button"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 uppercase font-semibold">Samsung Phones</div>
+                            <div class="text-lg font-bold text-white">${phones} phones</div>
+                            <div class="text-[11px] text-slate-500">Based on ₹60,000 per phone</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 6. International Trips (₹2,00,000) - Shown if >= ₹2,00,000
+            if (price >= 200000) {
+                const trips = (price / 200000).toFixed(1);
+                appState.matrixData.push({ label: 'International Trips', val: `${trips} trips`, icon: 'fa-plane-departure' });
+
+                cardsHTML += `
+                    <div class="glass-card glass-card-hover p-4 rounded-xl flex items-center gap-3.5 border border-slate-800">
+                        <div class="w-11 h-11 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg flex-shrink-0">
+                            <i class="fa-solid fa-plane-departure"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 uppercase font-semibold">International Trips</div>
+                            <div class="text-lg font-bold text-white">${trips} trips</div>
+                            <div class="text-[11px] text-slate-500">Based on ₹2,00,000 per trip</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 7. 2BHK Apartments (₹1,00,00,000) - Shown if >= ₹1,00,00,000 (1 Cr)
+            if (price >= 10000000) {
+                const flats = (price / 10000000).toFixed(2);
+                appState.matrixData.push({ label: '2BHK Apartments', val: `${flats} flats`, icon: 'fa-building' });
+
+                cardsHTML += `
+                    <div class="glass-card glass-card-hover p-4 rounded-xl flex items-center gap-3.5 border border-slate-800">
+                        <div class="w-11 h-11 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-lg flex-shrink-0">
+                            <i class="fa-solid fa-building"></i>
+                        </div>
+                        <div>
+                            <div class="text-xs text-slate-400 uppercase font-semibold">2BHK Luxury Apartments</div>
+                            <div class="text-lg font-bold text-purple-300">${flats} flats</div>
+                            <div class="text-[11px] text-slate-500">Based on ₹1 Crore per flat</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            grid.innerHTML = cardsHTML;
+        }
+
+        // Step 3: Quiz Selection
+        function selectQuizAnswer(questionIndex, value) {
+            appState.quizAnswers[questionIndex] = value;
+
+            const yesBtn = document.getElementById(`q${questionIndex}-yes`);
+            const noBtn = document.getElementById(`q${questionIndex}-no`);
+
+            const activeClass = ['border-brand-500', 'bg-brand-500/20', 'text-white'];
+            const inactiveClass = ['border-slate-700', 'bg-slate-800', 'text-slate-300'];
+
+            if (value === true) {
+                yesBtn.classList.add(...activeClass);
+                yesBtn.classList.remove(...inactiveClass);
+                noBtn.classList.remove(...activeClass);
+                noBtn.classList.add(...inactiveClass);
+            } else {
+                noBtn.classList.add(...activeClass);
+                noBtn.classList.remove(...inactiveClass);
+                yesBtn.classList.remove(...activeClass);
+                yesBtn.classList.add(...inactiveClass);
+            }
+
+            document.getElementById('quiz-error').classList.add('hidden');
+        }
+
+        function validateQuizAndProceed() {
+            const allAnswered = appState.quizAnswers.every(a => a !== null);
+            if (!allAnswered) {
+                document.getElementById('quiz-error').classList.remove('hidden');
+                return;
+            }
+            goToStep(4);
+        }
+
+        // Skip Cooldown Function
+        function skipCooldown() {
+            appState.timerSecondsLeft = 0;
+            const timerCircle = document.getElementById('timer-progress');
+            const secondsDisplay = document.getElementById('timer-seconds');
+            const statusText = document.getElementById('cooldown-status-text');
+            const buyBtn = document.getElementById('buy-btn');
+            const buyBtnLabel = document.getElementById('buy-btn-label');
+
+            clearInterval(appState.timerInterval);
+            clearInterval(appState.quoteInterval);
+
+            secondsDisplay.textContent = '0';
+            timerCircle.style.strokeDashoffset = '263.89';
+
+            statusText.textContent = "Cooldown skipped! 'I Still Want To Buy It' is unlocked.";
+            statusText.className = "text-xs text-emerald-400 font-semibold mb-3";
+
+            buyBtn.disabled = false;
+            buyBtn.className = "flex-1 bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-brand-600/30 text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer opacity-100";
+            buyBtnLabel.textContent = "I Still Want To Buy It";
+            buyBtn.querySelector('i').className = "fa-solid fa-cart-check";
+        }
+
+        // Step 4: Cooldown Timer & Quote Carousel
+        function startCooldownTimer() {
+            clearInterval(appState.timerInterval);
+            clearInterval(appState.quoteInterval);
+
+            appState.timerSecondsLeft = 30;
+            const timerCircle = document.getElementById('timer-progress');
+            const secondsDisplay = document.getElementById('timer-seconds');
+            const statusText = document.getElementById('cooldown-status-text');
+
+            const buyBtn = document.getElementById('buy-btn');
+            const buyBtnLabel = document.getElementById('buy-btn-label');
+
+            // Reset Buy Button State -> Disabled
+            buyBtn.disabled = true;
+            buyBtn.className = "flex-1 bg-slate-800/50 text-slate-500 cursor-not-allowed font-bold py-3.5 px-4 rounded-xl border border-slate-700/50 text-xs sm:text-sm transition flex items-center justify-center gap-2 opacity-60";
+            buyBtnLabel.textContent = "Wait 30s to Unlock";
+
+            const totalDash = 263.89;
+            timerCircle.style.strokeDashoffset = '0';
+            secondsDisplay.textContent = '30';
+            statusText.textContent = "Take a moment to decide what feels right for you.";
+
+            let quoteIdx = 0;
+            appState.quoteInterval = setInterval(() => {
+                quoteIdx = (quoteIdx + 1) % satireQuotes.length;
+                document.getElementById('cooldown-quote').textContent = satireQuotes[quoteIdx];
+            }, 4000);
+
+            appState.timerInterval = setInterval(() => {
+                appState.timerSecondsLeft--;
+                const remaining = appState.timerSecondsLeft;
+
+                secondsDisplay.textContent = remaining;
+
+                const offset = totalDash - (remaining / 30) * totalDash;
+                timerCircle.style.strokeDashoffset = offset;
+
+                if (remaining > 0) {
+                    buyBtnLabel.textContent = `Wait ${remaining}s to Unlock`;
+                } else {
+                    clearInterval(appState.timerInterval);
+                    clearInterval(appState.quoteInterval);
+
+                    statusText.textContent = "30 seconds complete! 'I Still Want To Buy It' is unlocked.";
+                    statusText.className = "text-xs text-emerald-400 font-semibold mb-3";
+
+                    // Enable Buy Button
+                    buyBtn.disabled = false;
+                    buyBtn.className = "flex-1 bg-brand-600 hover:bg-brand-500 text-white font-bold py-3.5 px-4 rounded-xl shadow-lg shadow-brand-600/30 text-xs sm:text-sm transition flex items-center justify-center gap-2 cursor-pointer opacity-100";
+                    buyBtnLabel.textContent = "I Still Want To Buy It";
+                    buyBtn.querySelector('i').className = "fa-solid fa-cart-check";
+                }
+            }, 1000);
+        }
+
+        // Step 5: Handle User's Conscious Decision
+        function makeUserChoice(decision) {
+            clearInterval(appState.timerInterval);
+            clearInterval(appState.quoteInterval);
+
+            appState.userDecision = decision;
+
+            const outcomeBanner = document.getElementById('outcome-banner');
+            const outcomeBadge = document.getElementById('outcome-badge');
+            const outcomeTitle = document.getElementById('outcome-title');
+            const outcomeSubtitle = document.getElementById('outcome-subtitle');
+
+            if (decision === 'buy') {
+                outcomeBanner.className = "p-6 rounded-2xl text-center space-y-2 border border-brand-500/30 bg-brand-500/10";
+                outcomeBadge.className = "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-1 bg-brand-500/20 text-brand-300 border border-brand-500/30";
+                outcomeBadge.innerHTML = '<i class="fa-solid fa-heart"></i> Conscious Purchase';
+
+                outcomeTitle.textContent = "Fair Enough! Enjoy Your Purchase!";
+                outcomeSubtitle.textContent = `You gave yourself time to reflect on "${appState.itemName}". If it brings long-term value, go for it with zero guilt!`;
+            } else {
+                outcomeBanner.className = "p-6 rounded-2xl text-center space-y-2 border border-emerald-500/30 bg-emerald-500/10";
+                outcomeBadge.className = "inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-1 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30";
+                outcomeBadge.innerHTML = '<i class="fa-solid fa-piggy-bank"></i> Wallet Protected';
+
+                outcomeTitle.textContent = "Victory! Sanity Preserved!";
+                outcomeSubtitle.textContent = `You decided to abandon "${appState.itemName}". You just saved ₹${appState.itemPrice.toLocaleString('en-IN')}!`;
+            }
+
+            // Populate Complete Summary List
+            document.getElementById('summary-price-badge').textContent = `₹${appState.itemPrice.toLocaleString('en-IN')}`;
+            const summaryList = document.getElementById('summary-full-list');
+
+            let summaryHTML = `
+                <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+                    <span class="text-slate-400">Item Name:</span>
+                    <span class="font-bold text-white">${appState.itemName}</span>
+                </div>
+            `;
+
+            appState.matrixData.forEach(item => {
+                summaryHTML += `
+                    <div class="flex justify-between items-center py-1 border-b border-slate-800/60">
+                        <span class="text-slate-400 flex items-center gap-2">
+                            <i class="fa-solid ${item.icon} text-brand-400"></i> ${item.label}:
+                        </span>
+                        <span class="font-bold text-white">${item.val}</span>
+                    </div>
+                `;
+            });
+
+            summaryList.innerHTML = summaryHTML;
+
+            goToStep(5);
+        }
+
+        // Build Plain Text Summary
+        function getFormattedTextSummary() {
+            const isAbandon = appState.userDecision === 'abandon';
+            const verdictText = isAbandon
+                ? "My verdict - I chose to abandon the purchase and preserve financial sanity! 🛡️"
+                : "My verdict - I made a conscious, reflective choice to go ahead with this purchase! 💳";
+
+            let splitsText = appState.matrixData.map(m => `• ${m.label}: ${m.val}`).join('\n');
+
+            return `🛍️ Should I Buy This? — Impulse Control Result
+
+Item: ${appState.itemName}
+Price: ₹${appState.itemPrice.toLocaleString('en-IN')}
+
+📊 Real-World Equivalents:
+${splitsText}
+
+${verdictText}
+
+Test your impulse control & check yours here:
+${SITE_URL}`;
+        }
+
+        // Native General Share Option (WhatsApp, Instagram, Apps)
+        async function shareResult() {
+            const shareData = {
+                title: 'Should I Buy This? — Impulse Control Result',
+                text: getFormattedTextSummary(),
+                url: SITE_URL
+            };
+
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        copyTextSummary();
+                    }
+                }
+            } else {
+                copyTextSummary();
+            }
+        }
+
+        // Copy Text Summary to Clipboard
+        function copyTextSummary() {
+            const fullText = getFormattedTextSummary();
+
+            const tempTextArea = document.createElement('textarea');
+            tempTextArea.value = fullText;
+            document.body.appendChild(tempTextArea);
+            tempTextArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempTextArea);
+
+            showToast("Result copied to clipboard!");
+        }
+
+        // Generate and Download Canvas Image Summary
+        function generateAndDownloadImage() {
+            const canvas = document.getElementById('share-canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Dynamic height calculation based on item count to prevent cropping
+            const itemsCount = appState.matrixData.length;
+            const computedHeight = 520 + (itemsCount * 55) + 200;
+            canvas.height = computedHeight;
+            canvas.width = 800;
+
+            // Background
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, 800, computedHeight);
+
+            // Inner Card
+            const gradient = ctx.createLinearGradient(0, 0, 800, computedHeight);
+            gradient.addColorStop(0, '#1e293b');
+            gradient.addColorStop(1, '#0f172a');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(40, 40, 720, computedHeight - 80);
+
+            // Outer Border
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 3;
+            ctx.strokeRect(40, 40, 720, computedHeight - 80);
+
+            // Title & Header
+            ctx.fillStyle = '#6366f1';
+            ctx.font = 'bold 18px sans-serif';
+            ctx.fillText('FINANCIAL SANITY GUARD', 80, 95);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 32px sans-serif';
+            ctx.fillText('Impulse Control Summary', 80, 140);
+
+            // Divider Line
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(80, 165);
+            ctx.lineTo(720, 165);
+            ctx.stroke();
+
+            // Item Name & Price Box
+            ctx.fillStyle = 'rgba(15, 23, 42, 0.6)';
+            ctx.fillRect(80, 190, 640, 90);
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(80, 190, 640, 90);
+
+            ctx.fillStyle = '#94a3b8';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('ITEM NAME', 100, 220);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.fillText(appState.itemName, 100, 255);
+
+            ctx.fillStyle = '#818cf8';
+            ctx.font = 'bold 28px sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(`₹${appState.itemPrice.toLocaleString('en-IN')}`, 700, 245);
+            ctx.textAlign = 'left';
+
+            // Real World Splits Header
+            ctx.fillStyle = '#cbd5e1';
+            ctx.font = 'bold 18px sans-serif';
+            ctx.fillText('Real-World Equivalents:', 80, 320);
+
+            let currentY = 360;
+            appState.matrixData.forEach(item => {
+                ctx.fillStyle = 'rgba(30, 41, 59, 0.8)';
+                ctx.fillRect(80, currentY - 25, 640, 45);
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '15px sans-serif';
+                ctx.fillText(item.label, 100, currentY + 4);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.font = 'bold 16px sans-serif';
+                ctx.textAlign = 'right';
+                ctx.fillText(item.val, 700, currentY + 4);
+                ctx.textAlign = 'left';
+
+                currentY += 55;
+            });
+
+            // Verdict Box
+            const isAbandon = appState.userDecision === 'abandon';
+            ctx.fillStyle = isAbandon ? 'rgba(16, 185, 129, 0.15)' : 'rgba(99, 102, 241, 0.15)';
+            ctx.fillRect(80, currentY + 15, 640, 85);
+            ctx.strokeStyle = isAbandon ? '#10b981' : '#6366f1';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(80, currentY + 15, 640, 85);
+
+            ctx.fillStyle = isAbandon ? '#34d399' : '#a5b4fc';
+            ctx.font = 'bold 14px sans-serif';
+            ctx.fillText('FINAL DECISION VERDICT', 100, currentY + 42);
+
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 18px sans-serif';
+            const verdictMsg = isAbandon
+                ? 'I chose to abandon the purchase and preserve financial sanity!'
+                : 'I made a conscious choice to go ahead with this purchase!';
+            ctx.fillText(verdictMsg, 100, currentY + 74);
+
+            // Footer / URL
+            ctx.fillStyle = '#64748b';
+            ctx.font = '14px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('Test your impulse control at:', 400, computedHeight - 75);
+
+            ctx.fillStyle = '#818cf8';
+            ctx.font = 'bold 16px sans-serif';
+            ctx.fillText(SITE_URL, 400, computedHeight - 50);
+
+            // Trigger Download
+            const link = document.createElement('a');
+            link.download = `Impulse-Control-${appState.itemName.replace(/\s+/g, '-')}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+
+            showToast("Image summary downloaded!");
+        }
+
+        // Show Toast Notification
+        function showToast(msg) {
+            const toast = document.getElementById('toast-msg');
+            document.getElementById('toast-text').textContent = msg;
+
+            toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-[-100px]', 'opacity-0');
+            }, 3000);
+        }
+
+        // Reset Everything
+        function resetAll() {
+            appState = {
+                currentStep: 1,
+                itemName: '',
+                itemPrice: 0,
+                monthlyIncome: 50000,
+                quizAnswers: [null, null, null, null],
+                timerSecondsLeft: 30,
+                timerInterval: null,
+                quoteInterval: null,
+                userDecision: null,
+                matrixData: []
+            };
+
+            document.getElementById('impulse-form').reset();
+
+            const quizBtns = document.querySelectorAll('.quiz-btn');
+            quizBtns.forEach(btn => {
+                btn.className = "quiz-btn flex-1 py-2 px-3 rounded-lg border border-slate-700 bg-slate-800 text-xs font-bold text-slate-300 hover:border-slate-500 transition cursor-pointer";
+            });
+
+            goToStep(1);
+        }
+    </script>
+</body>
+</html>
